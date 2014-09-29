@@ -30,6 +30,7 @@ package mandrill
 import (
 	"encoding/base64"
 	"fmt"
+
 	"github.com/jmcvetta/napping"
 )
 
@@ -71,11 +72,11 @@ func do(url string, data interface{}, result interface{}) error {
 	err := newError()
 
 	rr := &napping.Request{
-		Url:    "https://mandrillapp.com/api/1.0" + url,
-		Method: "POST",
-		Payload:   data,
-		Result: result,
-		Error:  err}
+		Url:     "https://mandrillapp.com/api/1.0" + url,
+		Method:  "POST",
+		Payload: data,
+		Result:  result,
+		Error:   err}
 
 	status, errs := napping.Send(rr)
 
@@ -136,6 +137,8 @@ type Message struct {
 	FromName string `json:"from_name,omitempty"`
 	// recipient(s) information
 	To []*To `json:"to"`
+	// headers
+	Headers map[string]interface{} `json:"headers,omitempty"`
 	// global merge variables to use for all recipients
 	GlobalMergeVars []*variable `json:"global_merge_vars,omitempty"`
 	// Mandrill tags
@@ -186,6 +189,15 @@ func (msg *Message) AddMetadataField(field string, value interface{}) *Message {
 		msg.Metadata = make(map[string]interface{})
 	}
 	msg.Metadata[field] = value
+	return msg
+}
+
+// AddHeaderField adds a new field/value to the headers.
+func (msg *Message) AddHeaderField(field string, value interface{}) *Message {
+	if msg.Headers == nil {
+		msg.Headers = make(map[string]interface{})
+	}
+	msg.Headers[field] = value
 	return msg
 }
 
@@ -243,15 +255,15 @@ func (msg *Message) Send(async bool) ([]*SendResult, error) {
 func (msg *Message) SendTemplate(tmpl string, content map[string]string, async bool) ([]*SendResult, error) {
 	// prepare request data
 	var data struct {
-		Key            string      `json:"key"`
-		TemplateName   string      `json:"template_name"`
-		TemplateConent []*variable `json:"template_content"`
-		Message        *Message    `json:"message,omitempty"`
-		Async          bool        `json:"async"`
+		Key             string      `json:"key"`
+		TemplateName    string      `json:"template_name"`
+		TemplateContent []*variable `json:"template_content"`
+		Message         *Message    `json:"message,omitempty"`
+		Async           bool        `json:"async"`
 	}
 	data.Key = Key
 	data.TemplateName = tmpl
-	data.TemplateConent = mapToVars(content)
+	data.TemplateContent = mapToVars(content)
 	data.Message = msg
 	data.Async = async
 
