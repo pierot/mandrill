@@ -25,6 +25,7 @@
 // It's even easier to send a message using a template:
 //
 //     res, err := mandrill.NewMessageTo(email, name).SendTemplate(tmplName, data, false)
+
 package mandrill
 
 import (
@@ -95,7 +96,9 @@ func Ping() error {
 	var data struct {
 		Key string `json:"key"`
 	}
+
 	data.Key = Key
+
 	return do("/users/ping", &data, nil)
 }
 
@@ -168,18 +171,21 @@ func NewMessageTo(email, name string) *Message {
 func (msg *Message) AddRecipient(email, name string) *Message {
 	to := &To{email, name}
 	msg.To = append(msg.To, to)
+
 	return msg
 }
 
 // AddGlobalMergeVars provides given data as merge vars with message.
 func (msg *Message) AddGlobalMergeVars(data map[string]string) *Message {
 	msg.GlobalMergeVars = append(msg.GlobalMergeVars, mapToVars(data)...)
+
 	return msg
 }
 
 // AddTags does what it's name says.
 func (msg *Message) AddTags(tags ...string) *Message {
 	msg.Tags = append(msg.Tags, tags...)
+
 	return msg
 }
 
@@ -188,7 +194,9 @@ func (msg *Message) AddMetadataField(field string, value interface{}) *Message {
 	if msg.Metadata == nil {
 		msg.Metadata = make(map[string]interface{})
 	}
+
 	msg.Metadata[field] = value
+
 	return msg
 }
 
@@ -197,7 +205,9 @@ func (msg *Message) AddHeaderField(field string, value interface{}) *Message {
 	if msg.Headers == nil {
 		msg.Headers = make(map[string]interface{})
 	}
+
 	msg.Headers[field] = value
+
 	return msg
 }
 
@@ -205,12 +215,14 @@ func (msg *Message) AddHeaderField(field string, value interface{}) *Message {
 func (msg *Message) AddRecipientMetadata(recipient string, metadata map[string]interface{}) *Message {
 	rcptMetadata := &RecipientMetadata{recipient, metadata}
 	msg.RecipientMetadata = append(msg.RecipientMetadata, rcptMetadata)
+
 	return msg
 }
 
 // AddSubAccount will set the subaccount for the message to be delivered by.
 func (msg *Message) AddSubAccount(subaccount string) *Message {
 	msg.SubAccount = subaccount
+
 	return msg
 }
 
@@ -227,6 +239,7 @@ func (msg *Message) AddAttachment(data []byte, name, mime string) *Message {
 	}
 
 	msg.Attachments = append(msg.Attachments, attachment)
+
 	return msg
 }
 
@@ -238,6 +251,7 @@ func (msg *Message) Send(async bool) ([]*SendResult, error) {
 		Message *Message `json:"message,omitempty"`
 		Async   bool     `json:"async"`
 	}
+
 	data.Key = Key
 	data.Message = msg
 	data.Async = async
@@ -245,9 +259,11 @@ func (msg *Message) Send(async bool) ([]*SendResult, error) {
 	// perform the request
 	res := make([]*SendResult, 0)
 	err := do("/messages/send", &data, &res)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return res, nil
 }
 
@@ -261,6 +277,7 @@ func (msg *Message) SendTemplate(tmpl string, content map[string]string, async b
 		Message         *Message    `json:"message,omitempty"`
 		Async           bool        `json:"async"`
 	}
+
 	data.Key = Key
 	data.TemplateName = tmpl
 	data.TemplateContent = mapToVars(content)
@@ -270,9 +287,11 @@ func (msg *Message) SendTemplate(tmpl string, content map[string]string, async b
 	// perform the request
 	res := make([]*SendResult, 0)
 	err := do("/messages/send-template", &data, &res)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return res, nil
 }
 
@@ -285,8 +304,10 @@ type variable struct {
 // mapToVars converts a map to a list variable.
 func mapToVars(m map[string]string) []*variable {
 	vars := make([]*variable, 0, len(m))
+
 	for k, v := range m {
 		vars = append(vars, &variable{k, v})
 	}
+
 	return vars
 }
